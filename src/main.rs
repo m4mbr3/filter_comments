@@ -105,3 +105,125 @@ fn main() {
         };
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fid() {
+        let res = process_file(String::from("src/tests/test.fid"));
+        match res {
+            Ok(()) => (),
+            Err(_) => assert!(false)
+        }
+
+        let file = match OpenOptions::new().read(true).open("src/tests/test.fid.out") {
+            Ok(file) => file,
+            Err(_) => return assert!(false)
+        };
+
+        let result : String  = String::from("N1 CENTRI VITI M20 FIX CASTELLO");
+        let mut reader = io::BufReader::new(file);
+        let mut line : String = String::new();
+        let bytes_read = match reader.read_line(&mut line) {
+            Ok(size) => size,
+            Err(_) => return assert!(false)
+        };
+
+        assert_eq!(bytes_read-2, result.trim().len());
+
+        assert_eq!(result.trim(), line.trim());
+    }
+
+    #[test]
+    fn test_others() {
+        let res = process_file(String::from("src/tests/test.txt"));
+        match res {
+            Ok(()) => (),
+            Err(_) => assert!(false)
+        }
+
+        let file = match OpenOptions::new().read(true).open("src/tests/test.txt.out") {
+            Ok(file) => file,
+            Err(_) => return assert!(false)
+        };
+
+        let result : String  = String::from("N5 CENTRI VITI M20 FIX CASTELLO");
+        let mut reader = io::BufReader::new(file);
+        let mut line : String = String::new();
+        let bytes_read = match reader.read_line(&mut line) {
+            Ok(size) => size,
+            Err(_) => return assert!(false)
+        };
+
+        assert_eq!(bytes_read-2, result.trim().len());
+
+        assert_eq!(result.trim(), line.trim());
+    }
+
+    #[test]
+    fn test_empty() {
+        let res = process_file(String::from("src/tests/empty"));
+        match res {
+            Ok(()) => (),
+            Err(_) => assert!(false)
+        }
+
+        let file = match OpenOptions::new().read(true).open("src/tests/empty.out") {
+            Ok(file) => file,
+            Err(_) => return assert!(false)
+        };
+
+        let result : String  = String::from("");
+        let mut reader = io::BufReader::new(file);
+        let mut line : String = String::new();
+        let bytes_read = match reader.read_line(&mut line) {
+            Ok(size) => size,
+            Err(_) => return assert!(false)
+        };
+
+        assert_eq!(bytes_read, result.trim().len());
+
+        assert_eq!(result.trim(), line.trim());
+    }
+
+    #[test]
+    fn test_nonexisting() {
+        let res = process_file(String::from("src/tests/something"));
+        match res {
+            Ok(()) => (),
+            Err(e) => match e {
+                Error::NotExist(e) => assert_eq!(e, String::from("src/tests/something")),
+                Error::Create(e) => assert_eq!(e, String::from("src/tests/something"))
+            }
+        }
+    }
+
+    #[test]
+    fn test_i() {
+        let res = process_file(String::from("src/tests/test.i"));
+        match res {
+            Ok(()) => (),
+            Err(_) => assert!(false)
+        }
+
+        let file = match OpenOptions::new().read(true).open("src/tests/test.i.out") {
+            Ok(file) => file,
+            Err(_) => return assert!(false)
+        };
+
+        let result : String  = String::from("CENTRI VITI M20 FIX CASTELLO");
+        let mut reader = io::BufReader::new(file);
+        let mut line : String = String::new();
+        let bytes_read = match reader.read_line(&mut line) {
+            Ok(size) => size,
+            Err(_) => return assert!(false)
+        };
+
+        assert_eq!(bytes_read-2, result.trim().len());
+
+        assert_eq!(result.trim(), line.trim());
+    }
+
+}
