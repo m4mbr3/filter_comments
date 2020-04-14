@@ -1,17 +1,25 @@
 use std::io::{self, BufRead};
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
+use qt_widgets::{self,
+                QFileDialog,
+                qt_core::QString,
+                cpp_core::CppBox,
+                QApplication};
+
 
 enum Error {
     NotExist (String),
     Create (String),
 }
 
-fn read_filename() -> io::Result<String> {
-    let mut filename = String::new();
-    println!("Inserire il nome del file:");
-    io::stdin().read_line(&mut filename)?;
+fn read_filename() -> io::Result<CppBox<QString>> {
+    unsafe{
+    let filename = QFileDialog::get_open_file_name_0a();
+    //println!("Inserire il nome del file:");
+    //io::stdin().read_line(&mut filename)?;
     Ok(filename)
+    }
 }
 
 fn process_file(filename: String) -> Result<(), Error> {
@@ -85,11 +93,21 @@ fn print_message() {
 }
 
 fn main() {
+    QApplication::init(|_app| {
+
     print_message();
     loop {
         let filename = read_filename();
         match filename {
-            Ok(name) => {
+            Ok(a) => {
+                unsafe {
+                    let ptr_name = a.as_ptr();
+                    if ptr_name.is_null() {
+                        std::process::exit(0);
+                    }
+                };
+                let name = a.to_std_string();
+
                 match process_file(name) {
                     Ok(_) => std::process::exit(0),
                     Err(e) => match e {
@@ -104,6 +122,7 @@ fn main() {
             }
         };
     }
+    });
 }
 
 #[cfg(test)]

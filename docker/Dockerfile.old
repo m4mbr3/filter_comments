@@ -1,0 +1,7 @@
+FROM rustembedded/cross:x86_64-pc-windows-gnu
+
+RUN apt install -y qtbase5-dev
+RUN apt install -y qt5-qmake
+RUN apt install -y qt5-default
+RUN apt install -y qtbase5-dev
+
