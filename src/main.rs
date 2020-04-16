@@ -15,11 +15,17 @@ enum Error {
 
 fn read_filename() -> io::Result<CppBox<QString>> {
     unsafe{
-    let filename = QFileDialog::get_open_file_name_0a();
-    //println!("Inserire il nome del file:");
-    //io::stdin().read_line(&mut filename)?;
-    Ok(filename)
+        let filename =
+            QFileDialog::get_open_file_name_0a();
+        Ok(filename)
     }
+}
+
+fn press_key_to_continue() -> io::Result<()> {
+    let mut key : String = String::new();
+    println!("Premere Enter per chiudere il programma");
+    io::stdin().read_line(&mut key)?;
+    Ok(())
 }
 
 fn process_file(filename: String) -> Result<(), Error> {
@@ -101,15 +107,20 @@ fn main() {
         match filename {
             Ok(a) => {
                 unsafe {
-                    let ptr_name = a.as_ptr();
-                    if ptr_name.is_null() {
-                        std::process::exit(0);
+                    if a.is_null() {
+                        println!("Nessun File Selezionato");
+                        press_key_to_continue();
+                        std::process::exit(0)
                     }
                 };
+
                 let name = a.to_std_string();
 
                 match process_file(name) {
-                    Ok(_) => std::process::exit(0),
+                    Ok(_) => {
+                        press_key_to_continue();
+                        std::process::exit(0)
+                    }
                     Err(e) => match e {
                         Error::NotExist(name) => println!("Impossibile aprire il file {}!\n", name),
                         Error::Create(name) => println!("Impossibile creare il file in uscita {}\n", name)
