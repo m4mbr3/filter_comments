@@ -7,7 +7,6 @@ use qt_widgets::{self,
                 cpp_core::CppBox,
                 QApplication};
 
-
 enum Error {
     NotExist (String),
     Create (String),
@@ -55,18 +54,31 @@ fn process_file(filename: String) -> Result<(), Error> {
 
     let mut reader = io::BufReader::new(input_file);
     let mut line = String::new();
+    let mut vec_16 = vec![0u8];
 
     println!("\n");
 
     loop {
         line.clear();
+        vec_16.clear();
 
-        let bytes_read = reader.read_line(&mut line)
+        let bytes_read = reader.read_until(0xA, &mut vec_16)
             .expect("There is always a line to read");
 
         if bytes_read == 0 {
             break;
         }
+
+        // Look for UTF-16 char and replace with UTF-8 corresponding encoding
+        let pos = vec_16.iter().position(|&r| r == 216);
+
+        if let Some(i) = pos {
+            vec_16.insert(i, 0xc3);
+            vec_16.insert(i+1, 0x98);
+            vec_16.remove(i+2);
+        }
+
+        let line = String::from_utf8(vec_16.clone()).unwrap();
 
         for comment in &comment_start {
             if !(line.contains(comment)) {
@@ -75,15 +87,22 @@ fn process_file(filename: String) -> Result<(), Error> {
         }
 
         if line.contains("CENTRI ")
-            || line.contains("PROFILI ") {
-            let mut output_line = line.clone();
+            || line.contains("PROFILI ")
+            || line.contains("PROFILO ")
+            || line.contains("CENTRO ") {
+
+            let mut output_line = line.to_string();
+
             for comment in &comment_start {
                 output_line = output_line.replace(comment, "");
             }
+
             for comment in &comment_end {
                 output_line = output_line.replace(comment, "");
             }
+
             print!("{}", output_line);
+
             output_file.write_all(output_line.as_bytes())
                 .expect("Always able to append to the file");
         }
