@@ -1,6 +1,8 @@
 use std::io::{self, BufRead};
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
+use std::env;
+
 use qt_widgets::{self,
                 QFileDialog,
                 qt_core::QString,
@@ -133,7 +135,23 @@ fn print_message() {
 fn main() {
     QApplication::init(|_app| {
 
+    let  args: Vec<String> = env::args().collect();
+
     print_message();
+
+    if args.len() == 2 {
+        match process_file(args[1].to_string()) {
+            Ok(_) => {
+                press_key_to_continue();
+                std::process::exit(0)
+            }
+            Err(e) => match e {
+                Error::NotExist(name) => println!("Impossibile aprire il file {}!\n", name),
+                Error::Create(name) => println!("Impossibile creare il file in uscita {}\n", name)
+            }
+        }
+    }
+
     loop {
         let filename = read_filename();
         match filename {
