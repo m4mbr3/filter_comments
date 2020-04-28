@@ -80,16 +80,29 @@ fn process_file(filename: String) -> Result<(), Error> {
 
         let line = String::from_utf8(vec_16.clone()).unwrap();
 
+        // False if the line does not contain comment...therefore skip
+        let mut flag = false;
+
         for comment in &comment_start {
-            if !(line.contains(comment)) {
-                continue;
+            if line.contains(comment) {
+                flag = true;
             }
         }
 
-        if line.contains("CENTRI ")
-            || line.contains("PROFILI ")
-            || line.contains("PROFILO ")
-            || line.contains("CENTRO ") {
+        if !flag {
+            continue;
+        }
+
+        if !(line.contains("[ T") && (line.contains("CENTRINATURA") || line.contains("CONTORNATURA")))
+           && !(line.contains("* - T") && (line.contains("Centrinatura") || line.contains("Contornatura")))
+           && !line.contains("[ UTENSILE DI FORATURA ]")
+           && !line.contains("(UTENSILE DI FORATURA)")
+           && !line.contains("* - UTENSILE DI FORATURA")
+           && !line.contains("[ CILINDRICA ]")
+           && !line.contains("(CILINDRICA)")
+           && !line.contains("* - CILINDRICA")
+           && !line.contains("* - OPERATION")
+            {
 
             let mut output_line = line.to_string();
 
